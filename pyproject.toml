@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "authentic-ai"
+version = "0.1.0"
+description = "A machine learning solution to determine whether an essay is A.I generated or student-written."
+authors = ["Jinal.Shah <28205508+JinalShah2002@users.noreply.github.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.9.7 || >3.9.7,<3.11"
+mysql-connector-python = "^8.2.0"
+pandas = "^2.1.4"
+numpy = "^1.26.3"
+pyarrow = "^14.0.2"
+SQLAlchemy = "^2.0.25"
+matplotlib = "^3.8.2"
+seaborn = "^0.13.1"
+transformers = "^4.36.2"
+torch = "^2.1.2"
+exceptiongroup = "^1.2.0"
+scikit-learn = "1.2.2"
+language-tool-python = "^2.7.1"
+torchtext = "^0.16.2"
+spacy = "^3.7.2"
+nltk = "^3.8.1"
+streamlit = "^1.30.0"
+catboost = "^1.2.2"
+tensorflow = "^2.15.0"
+ipywidgets = "^8.1.1"
+scipy = "^1.12.0"
+psutil = "^6.0.0"
+google-cloud-monitoring = "^2.22.2"
+google-cloud-storage = "^2.18.2"
+pymysql = "^1.1.1"
+google-cloud-pubsub = "^2.23.0"
+google-cloud-secret-manager = "^2.20.2"
+logging = "^0.4.9.6"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
