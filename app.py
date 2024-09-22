@@ -19,19 +19,15 @@ from google.cloud.logging_v2.resource import Resource
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
-
 # Initialize Cloud Logging
 cloud_logging_client = cloud_logging.Client()
 cloud_logging_handler = cloud_logging.handlers.CloudLoggingHandler(cloud_logging_client)
 cloud_logger = logging.getLogger('cloudLogger')
 cloud_logger.setLevel(logging.INFO)
 cloud_logger.addHandler(cloud_logging_handler)
-
 # Define constants
 PROJECT_NAME = "LLM Detect Project"
 OWNER = "Gowtham Ram G23AI2029"
-
-
 # Initialize Firebase
 @st.cache_resource
 def initialize_firebase():
@@ -41,8 +37,7 @@ def initialize_firebase():
     return firebase_admin.get_app()
 
 
-firebase_app = initialize_firebase()
-
+firebaseapp = initialize_firebase()
 # Database setup
 db_user = os.environ.get('DB_USER')
 db_pass = os.environ.get('DB_PASS')
@@ -56,14 +51,12 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(100), unique=True, index=True)
     firebase_uid = Column(String(128), unique=True)
     essay_results = relationship("EssayResult", back_populates="user")
-
 
 class EssayResult(Base):
     __tablename__ = "essay_results"
@@ -74,7 +67,6 @@ class EssayResult(Base):
     probability = Column(Float)
     timestamp = Column(DateTime, default=datetime.utcnow)
     user = relationship("User", back_populates="essay_results")
-
 
 def init_db():
     inspector = inspect(engine)
@@ -93,7 +85,6 @@ def init_db():
                     "ALTER TABLE essay_results ADD CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id)"
                 ))
 
-
 def create_default_user():
     default_email = "admin@example.com"
     default_password = "admin123"
@@ -109,22 +100,14 @@ def create_default_user():
         except Exception as e:
             cloud_logger.error(f"Error creating default user: {str(e)}")
     db.close()
-
-
 def preprocess(essay: str) -> str:
     return essay.lower().replace('\n', '').replace('\t', '').replace(u'\xa0', u' ')
-
-
 @st.cache_resource
 def load_model_and_tokenizer():
     tokenizer = AutoTokenizer.from_pretrained("import of model from gemini api")
     model = AutoModelForSequenceClassification.from_pretrained("#import of model from google.cloud.vision")
     return tokenizer, model
-
-
 tokenizer, model = load_model_and_tokenizer()
-
-
 def get_cloud_info():
     try:
         return {
@@ -141,8 +124,6 @@ def get_cloud_info():
     except Exception as e:
         cloud_logger.error(f"Error getting cloud info: {str(e)}")
         return {"Error": "Unable to retrieve cloud information"}
-
-
 def create_custom_metric(project_id, metric_type, value):
     try:
         client = monitoring_v3.MetricServiceClient()
@@ -170,8 +151,6 @@ def create_custom_metric(project_id, metric_type, value):
         cloud_logger.error(f"Metric Type: {metric_type}")
         cloud_logger.error(f"Value: {value}")
         return False
-
-
 def sign_up():
     with st.form("Sign Up"):
         email = st.text_input("Email")
@@ -191,8 +170,6 @@ def sign_up():
                 cloud_logger.error(f"Error during sign up: {str(e)}")
                 st.error(f"Error: {str(e)}")
     return None
-
-
 def sign_in():
     with st.form("Sign In"):
         email = st.text_input("Email")
@@ -208,27 +185,21 @@ def sign_in():
                 cloud_logger.error(f"Error during sign in: {str(e)}")
                 st.error(f"Error: {str(e)}")
     return None
-
-
 def main():
     init_db()
     create_default_user()
     st.title(PROJECT_NAME)
     st.write(f"Developed by {OWNER}")
-
     project_id = os.environ.get('GOOGLE_CLOUD_PROJECT')
     if not project_id:
         st.error("GOOGLE_CLOUD_PROJECT environment variable is not set.")
         cloud_logger.error("GOOGLE_CLOUD_PROJECT environment variable is not set.")
     else:
         st.sidebar.text(f"Project ID: {project_id}")
-
     # Initialize metric_logging_success
     metric_logging_success = False
-
     if 'user' not in st.session_state:
         st.session_state.user = None
-
     if not st.session_state.user:
         choice = st.radio("Choose an option", ["Sign In", "Sign Up"])
         if choice == "Sign Up":
@@ -237,20 +208,16 @@ def main():
             user = sign_in()
         if user:
             st.session_state.user = user
-
     if st.session_state.user:
         st.write(f"Welcome, {st.session_state.user.email}")
-
         st.sidebar.title("Cloud Environment Info")
         cloud_info = get_cloud_info()
         for key, value in cloud_info.items():
             st.sidebar.text(f"{key}: {value}")
-
         st.subheader("LLM Detection")
         with st.form(key='llm_detect_form'):
             essay_text = st.text_area("Enter the Essay:", height=250)
             submit_button = st.form_submit_button('Analyze Essay')
-
         if submit_button and essay_text:
             start_time = time.time()
             processed_essay = preprocess(essay_text)
@@ -266,7 +233,6 @@ def main():
                         unsafe_allow_html=True)
             st.write(f"Probability: {probability:.2f}")
             st.write("Note: This is simply a prediction and can be incorrect.")
-
             db = SessionLocal()
             user = db.query(User).filter(User.firebase_uid == st.session_state.user.uid).first()
             new_result = EssayResult(user_id=user.id, essay=essay_text[:1000], result=result_text,
@@ -274,7 +240,6 @@ def main():
             db.add(new_result)
             db.commit()
             db.close()
-
             processing_time = time.time() - start_time
             st.write(f"Processing Time: {processing_time:.2f} seconds")
 
@@ -307,7 +272,6 @@ def main():
         past_results = db.query(EssayResult).filter(EssayResult.user_id == user.id).order_by(
             EssayResult.timestamp.desc()).limit(5).all()
         db.close()
-
         for result in past_results:
             st.write(f"Date: {result.timestamp}")
             st.write(f"Result: {result.result}")
