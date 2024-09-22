@@ -117,8 +117,8 @@ def preprocess(essay: str) -> str:
 
 @st.cache_resource
 def load_model_and_tokenizer():
-    tokenizer = AutoTokenizer.from_pretrained("import of model from gemini api")
-    model = AutoModelForSequenceClassification.from_pretrained("#import of model from google.cloud.vision")
+    tokenizer = AutoTokenizer.from_pretrained("import of model from gemini api from huggingface")
+    model = AutoModelForSequenceClassification.from_pretrained("#import of model from google.cloud.vision from huggingface")
     return tokenizer, model
 
 
